@@ -32,3 +32,77 @@ Ansible must be installed and configured on the control node. If you connect to 
 The user ansible must also be present on all servers with appropriate shared keys for access to managed servers from the control node. Make sure to use this user to complete the commands.
 The default Ansible inventory must be configured with the appropriate hosts and groups.
 /etc/hosts entries must be present on control1 for the managed servers.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------
+solution
+
+sudo apt-get install -y whois
+
+mkpasswd --method=sha-512
+Password: secret
+$6$/FRgXHAyVQoUQ$Hayuu8WMFKjYKGtIXAdvNim9yaP3Ab92yAMqqJI9YWJ8nnt0UvX4rNxrq7VntP1fgWWduaCHzZNkaoJtJu.T6/
+
+------------------------------------------------------------------------------------------------------
+
+vi create-users.yml
+
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Add user "consultant" to remote server
+     user:
+       name: consultant
+       comment: "Consultant User"
+       groups: sudo
+       append: yes
+       createhome: yes
+       home: /home/consultant
+       shell: /bin/bash
+       generate_ssh_key: yes
+       ssh_key_bits: 2048
+       ssh_key_file: .ssh/id_rsa
+
+   - name: Add user "supervisor" to remote server
+     user:
+       name: supervisor
+       comment: "Supervisor User"
+       groups: sudo
+       append: yes
+       createhome: yes
+       home: /home/supervisor
+       shell: /bin/bash
+       generate_ssh_key: yes
+       ssh_key_bits: 2048
+       ssh_key_file: .ssh/id_rsa
+
+
+
+ ansible-playbook create-users.yml
+
+PLAY [host1] *******************************************************************************************************************************
+
+TASK [Gathering Facts] *********************************************************************************************************************
+[DEPRECATION WARNING]: Distribution Ubuntu 18.04 on host host1 should use /usr/bin/python3, but is using /usr/bin/python for backward 
+compatibility with prior Ansible releases. A future Ansible release will default to using the discovered platform python for this host. See
+ https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information. This feature will be removed in
+ version 2.12. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+ok: [host1]
+
+TASK [Add user "consultant" to remote server] **********************************************************************************************
+changed: [host1]
+
+TASK [Add user "supervisor" to remote server] **********************************************************************************************
+changed: [host1]
+
+PLAY RECAP *********************************************************************************************************************************
+host1                      : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+ubuntu@ip-172-31-19-175:/home$ ls -l
+total 16
+drwxr-xr-x 3 ansible    ansible    4096 Jun  1 12:49 ansible
+drwxr-xr-x 3 consultant consultant 4096 Jun  1 14:21 consultant
+drwxr-xr-x 3 supervisor supervisor 4096 Jun  1 14:21 supervisor
+drwxr-xr-x 6 ubuntu     ubuntu     4096 Jun  1 10:17 ubuntu

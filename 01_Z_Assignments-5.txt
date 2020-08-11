@@ -18,3 +18,54 @@ Install Ansible on the control node.
 Create user ansible on all servers, with appropriate shared keys for access to the necessary servers from the control node.
 apps.l33t.com is unavailable by default.
 We may force a state change by running change_l33t.sh available at https://github.com/satyensingh/ansible-assignments-scripts.git.
+
+
+========================================================================================================================================================================
+vi report.yml
+
+---
+- hosts: host1
+  tasks:
+    - name: Download the transaction_list file
+      block:
+        - get_url:
+            url: http://apps.l33t.com/transaction_list
+            dest: /home/ubuntu/transaction_list
+        - debug: msg="File downloaded"
+        - replace:
+            path: /home/ubuntu/transaction_list
+            regexp: "#BLANKLINE"
+            replace: '\n'
+      rescue:
+        - debug: msg="l33t.com appears to be down. Try again later."
+      always:
+        - debug: msg="Attempt completed."
+
+
+
+ubuntu@ip-172-31-29-245:~/ansibleassign$ ansible-playbook report.yml
+
+PLAY [host1] *******************************************************************************************************************************
+
+TASK [Gathering Facts] *********************************************************************************************************************
+[DEPRECATION WARNING]: Distribution Ubuntu 18.04 on host host1 should use /usr/bin/python3, but is using /usr/bin/python for backward 
+compatibility with prior Ansible releases. A future Ansible release will default to using the discovered platform python for this host. See
+ https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information. This feature will be removed in
+ version 2.12. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+ok: [host1]
+
+TASK [get_url] *****************************************************************************************************************************
+fatal: [host1]: FAILED! => {"changed": false, "dest": "/home/ubuntu/transaction_list", "elapsed": 0, "msg": "Request failed", "response": "HTTP Error 404: Not Found", "status_code": 404, "url": "http://apps.l33t.com/transaction_list"}
+
+TASK [debug] *******************************************************************************************************************************
+ok: [host1] => {
+    "msg": "l33t.com appears to be down.  Try again later."
+}
+
+TASK [debug] *******************************************************************************************************************************
+ok: [host1] => {
+    "msg": "Attempt completed."
+}
+
+PLAY RECAP *********************************************************************************************************************************
+host1                      : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0   

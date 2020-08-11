@@ -26,3 +26,108 @@ Configure the Ansible user on the workstation host so that Ansible may sudo with
 Create a simple inventory in /home/ansible/inventory consisting of only the workstation host.
 
 Write and execute an Ansible playbook in /home/ansible/git-setup.yml on the control node that installs git on the workstation host.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Solution : Ansible installation
+
+1) Run below command on both machines
+sudo apt-get update
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+2) Run below commands on manager
+
+sudo apt install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
+sudo apt install ansible
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+3) On host machine
+
+sudo apt-get install python
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+4) setup of ssh connection to host
+
+on control node
+cd .ssh
+ssh-keygen
+ls 
+authorized_keys  id_rsa  id_rsa.pub
+
+copy the content of id_rsa.pub and paste into authorised key file of host machine
+
+cat id_rsa.pub
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+5) On host machine
+cd .ssh
+sudo vi authorized_keys   and add key and save
+
+on control machine
+ssh ubuntu@<public-ip-address>
+
+should be connected to host
+exit
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+6) On control machine add ip address of the host machine in hosts file which is located in /etc/ansible/hosts
+
+sudo vi /etc/ansible/hosts
+
+add below lines at last of the file and save it
+
+[ansiblehost]
+host1 ansible_ssh_host=54.214.156.106
+
+To test connection execute below command
+
+ansible -m ping all
+ and output should be
+host1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    }, 
+    "changed": false, 
+    "ping": "pong"
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+vi git-setup.yml
+
+---
+- hosts: host1
+  become: True
+  tasks:
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+/home/ansible$ ansible-playbook git-setup.yml
+
+PLAY [host1] *******************************************************************************************************************************
+
+TASK [Gathering Facts] *********************************************************************************************************************
+[DEPRECATION WARNING]: Distribution Ubuntu 18.04 on host host1 should use /usr/bin/python3, but is using /usr/bin/python for backward 
+compatibility with prior Ansible releases. A future Ansible release will default to using the discovered platform python for this host. See
+ https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information. This feature will be removed in
+ version 2.12. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+ok: [host1]
+
+TASK [Install Git] *************************************************************************************************************************
+[WARNING]: Updating cache and auto-installing missing dependency: python-apt
+ok: [host1]
+
+PLAY RECAP *********************************************************************************************************************************
+host1                      : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+---------------------------------------------------------------------------------------------------------------------------------------------

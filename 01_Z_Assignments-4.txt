@@ -15,3 +15,58 @@ Summary tasks list:
 5. Configure the playbook to retrieve the website from http://repo.example.com/website.tgz on each server in the web group.
 6. Configure the playbook to unarchive the website into /var/www/html on all servers in the web group.
 7. Execute the playbook you created using the inventory you created to verify your work.
+
+---------------
+
+Solution
+
+
+vi web.yml
+
+---
+- hosts: host1
+  become: yes
+  tasks:
+    - name: Install Apache server
+      yum:
+        name: apache2
+        state: present
+    - name: Enable Apache on reboot
+      service:
+        name: apache2
+        enabled: True
+    - name: Deploy website
+      git:
+        repo: https://github.com/kishorsg/website
+        dest: /var/www/html
+    - name: restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+
+ubuntu@ip-172-31-29-245:~/ansibleassign$ ansible-playbook web.yml
+
+PLAY [host1] *******************************************************************************************************************************
+
+TASK [Gathering Facts] *********************************************************************************************************************
+[DEPRECATION WARNING]: Distribution Ubuntu 18.04 on host host1 should use /usr/bin/python3, but is using /usr/bin/python for backward 
+compatibility with prior Ansible releases. A future Ansible release will default to using the discovered platform python for this host. See
+ https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information. This feature will be removed in
+ version 2.12. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+ok: [host1]
+
+TASK [Install Apache server] ***************************************************************************************************************
+ok: [host1]
+
+TASK [Enable Apache on reboot] *************************************************************************************************************
+ok: [host1]
+
+TASK [Deploy website] **********************************************************************************************************************
+changed: [host1]
+
+TASK [restart Apache] **********************************************************************************************************************
+changed: [host1]
+
+PLAY RECAP *********************************************************************************************************************************
+host1                      : ok=5    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
